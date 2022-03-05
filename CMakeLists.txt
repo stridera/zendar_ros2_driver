@@ -103,6 +103,10 @@ catkin_package(
 ## Build ##
 ###########
 
+message("GFLAGS: ${GFLAGS_INCLUDE_DIRS} ${GFLAGS_LIBRARIES}")
+message("GLOG: ${GLOG_INCLUDE_DIRS} ${GLOG_LIBRARIES}")
+message("PROTOBUF: ${PROTOBUF_INCLUDE_DIRS} ${PROTOBUF_LIBRARIES}")
+
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
