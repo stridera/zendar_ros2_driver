@@ -27,8 +27,8 @@ constexpr int LOOP_RATE_HZ                 = 100;
 constexpr size_t LOG_MSG_QUEUE             = 200;
 
 constexpr size_t IMAGE_DOWNSAMPLING_FACTOR = 5;
-constexpr float IM_DYN_RANGE_MAX           = 1000.0; ///< 60dB dynamic range
-constexpr float IM_DYN_RANGE_MIN           = 562.0;  ///< 55dB dynamic range
+constexpr float IM_DYN_RANGE_MAX           = std::pow(10.0, (60.0 / 20.0)); ///< 60dB dynamic range
+constexpr float IM_DYN_RANGE_MIN           = std::pow(10.0, (55.0 / 20.0));  ///< 55dB dynamic range
 
 ///< max value of image set to 99% of atan's output
 const float ATAN_SCALE_FACTOR          = std::tan(0.99 * M_PI_2);
