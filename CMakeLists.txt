@@ -4,12 +4,13 @@ project(zendar_ros_driver)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_C_STANDARD 11)
 
-find_package(catkin REQUIRED COMPONENTS image_transport message_generation roscpp std_msgs sensor_msgs tf2_ros diagnostic_updater)
+find_package(catkin REQUIRED COMPONENTS image_transport message_generation roscpp std_msgs sensor_msgs cv_bridge tf2_ros diagnostic_updater)
 find_package(PCL REQUIRED COMPONENTS common)
 
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "cmake")
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+find_package(Protobuf REQUIRED)
 find_package(Gflags REQUIRED)
-find_package(Gflags REQUIRED)
+find_package(Glog REQUIRED)
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -102,6 +103,10 @@ catkin_package(
 ## Build ##
 ###########
 
+message("GFLAGS: ${GFLAGS_INCLUDE_DIRS} ${GFLAGS_LIBRARIES}")
+message("GLOG: ${GLOG_INCLUDE_DIRS} ${GLOG_LIBRARIES}")
+message("PROTOBUF: ${PROTOBUF_INCLUDE_DIRS} ${PROTOBUF_LIBRARIES}")
+
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
@@ -110,6 +115,7 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
   ${GFLAGS_INCLUDE_DIRS}
   ${GLOG_INCLUDE_DIRS}
+  ${PROTOBUF_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -126,16 +132,16 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(
-  ${PROJECT_NAME}_node
+  zendar_driver_node
   src/main.cc
-  src/zendar_ros_driver_node.cc
+  src/zendar_driver_node.cc
 )
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
-set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
+# set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -143,12 +149,16 @@ set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX ""
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(
-  ${PROJECT_NAME}_node
+  zendar_driver_node
   ${catkin_LIBRARIES}
   ${PCL_IO_LIBRARIES}
+  zendar_api2
+  zendar_common
+  shared_protobuf
+  pthread
   ${GFLAGS_LIBRARIES}
   ${GLOG_LIBRARIES}
-  zen_api2
+  ${PROTOBUF_LIBRARIES}
 )
 
 #############
