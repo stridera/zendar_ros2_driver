@@ -48,7 +48,7 @@ struct ImageNormal
     ROS_ASSERT(source_data.size() == sizeof(uint32_t) * source_cols * source_rows);
     const auto* aligned_data = reinterpret_cast<const uint32_t*>(source_data.data());
 
-    std::size_t downsampled_size = source_data.size() / downsample_factor;
+    std::size_t downsampled_size = source_data.size() / (sizeof(uint32_t) * downsample_factor);
     std::vector<uint32_t> downsampled_data(downsampled_size);
     for (size_t ndx = 0; ndx < downsampled_size; ++ndx) {
       downsampled_data[ndx] = aligned_data[ndx * downsample_factor];
@@ -59,7 +59,7 @@ struct ImageNormal
       downsampled_data.end()
     );
     std::sort(downsampled_data.begin(), downsampled_data.end());
-
+    
     this->min = downsampled_data.front();
     this->med = downsampled_data.at(downsampled_data.size() / 2);
     this->max = downsampled_data.back();
@@ -88,13 +88,13 @@ public:
   ImageProcessor&
   Scale(const ImageNormal& normal, float scale_factor)
   {
-    using PixelMap = const uint32_t (*)[this->rows][this->cols];
+    using PixelMap = const uint32_t (*)[this->cols][this->rows];
     const auto pixel_map = *reinterpret_cast<PixelMap>(this->data.data());
 
-    cv::Mat scaled_frame;
-    for (int col = 0; col < this->rows; ++col) {
-      for (int row = 0; row < this->cols; ++row) {
-        float pixel = pixel_map[row][col];
+    cv::Mat scaled_frame(this->rows, this->cols, CV_8UC1);
+    for (int col = 0; col < this->cols; ++col) {
+      for (int row = 0; row < this->rows; ++row) {
+        float pixel = pixel_map[col][row];
         float scaled_pixel = pixel / normal.med;
 
         if (scaled_pixel < 1.0) {
@@ -106,7 +106,7 @@ public:
             std::atan((scaled_pixel - 1.0) * scale_factor / (normal.limit - 1.0));
         }
 
-        this->frame.at<uint8_t>(row, col) = scaled_pixel * 255 / M_PI_2;
+        scaled_frame.at<uint8_t>(row, col) = scaled_pixel * 255 / M_PI_2;
       }
     }
 
@@ -172,9 +172,6 @@ ConvertToPointCloud2(
   }
 
   pcl::toROSMsg(pointcloud, cloud_msg);
-  cloud_msg.header.seq = (uint32_t)(cloud_data.meta().frame_id());
-  cloud_msg.header.frame_id = cloud_data.meta().serial();
-  cloud_msg.header.stamp = ros::Time(cloud_data.meta().timestamp());
 
   return cloud_msg;
 }
@@ -187,9 +184,6 @@ ConvertToPoseStamped(
   const auto& position_proto = cloud_data.meta().position();
 
   geometry_msgs::PoseStamped pose_stamped_msg;
-  pose_stamped_msg.header.seq = (uint32_t)(cloud_data.meta().frame_id());
-  pose_stamped_msg.header.stamp = ros::Time(cloud_data.meta().timestamp());
-  pose_stamped_msg.header.frame_id = "ECEF";
 
   pose_stamped_msg.pose.position.x = position_proto.x();
   pose_stamped_msg.pose.position.y = position_proto.y();
@@ -286,7 +280,8 @@ void ZendarDriverNode::ProcessImages()
       .Color()
       .Result();
 
-    ros_image->header.frame_id = "vehicle";
+    ros_image->header.seq = (uint32_t)(image->meta().frame_id());
+    ros_image->header.frame_id = image->meta().serial();
     ros_image->header.stamp = ros::Time(image->meta().timestamp());
 
     const auto& serial = image->meta().serial();
@@ -301,9 +296,19 @@ ZendarDriverNode::ProcessPointClouds()
     const auto& serial = points->meta().serial();
 
     auto cloud2 = ConvertToPointCloud2(*points);
+
+    cloud2.header.seq = (uint32_t)(points->meta().frame_id());
+    cloud2.header.frame_id = points->meta().serial();
+    cloud2.header.stamp = ros::Time(points->meta().timestamp());
+
     this->points_pub.Publish(serial, cloud2);
 
     auto pose_stamped = ConvertToPoseStamped(*points);
+
+    pose_stamped.header.seq = (uint32_t)(points->meta().frame_id());
+    pose_stamped.header.stamp = ros::Time(points->meta().timestamp());
+    pose_stamped.header.frame_id = "ECEF";
+
     this->points_metadata_pub.Publish(serial, pose_stamped);
   }
 }
@@ -314,8 +319,6 @@ ZendarDriverNode::ProcessPoseMessages()
   while (auto tracklog = ZenApi::NextTracklog(ZenApi::NO_WAIT)) {
 
     geometry_msgs::PoseStamped pose_stamped;
-    pose_stamped.header.stamp = ros::Time(tracklog->timestamp());
-    pose_stamped.header.frame_id = "ECEF";
 
     pose_stamped.pose.position.x = tracklog->position().x();
     pose_stamped.pose.position.y = tracklog->position().y();
@@ -325,6 +328,9 @@ ZendarDriverNode::ProcessPoseMessages()
     pose_stamped.pose.orientation.x = tracklog->attitude().x();
     pose_stamped.pose.orientation.y = tracklog->attitude().y();
     pose_stamped.pose.orientation.z = tracklog->attitude().z();
+
+    pose_stamped.header.stamp = ros::Time(tracklog->timestamp());
+    pose_stamped.header.frame_id = "ECEF";
 
     this->pose_pub.publish(pose_stamped);
   }
