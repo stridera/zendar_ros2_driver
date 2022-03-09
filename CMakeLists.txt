@@ -6,6 +6,7 @@ set(CMAKE_C_STANDARD 11)
 
 find_package(catkin REQUIRED COMPONENTS image_transport message_generation roscpp std_msgs sensor_msgs cv_bridge tf2_ros diagnostic_updater)
 find_package(PCL REQUIRED COMPONENTS common)
+# find_package(zendar-sdk REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 find_package(Protobuf REQUIRED)
