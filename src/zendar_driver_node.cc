@@ -260,10 +260,9 @@ void ZendarDriverNode::ProcessImages()
   while (auto image = ZenApi::NextImage(ZenApi::NO_WAIT)) {
     auto image_type = image->cartesian().data().type();
     if (image_type != zpb::data::ImageDataCartesian_Type_REAL_32U) {
-      // ROS_WARN(
-      //   "Only \"REAL_32U\" image type is supported. "
-      //   << "Image type { " + std::to_string(image_type) + " } is not supported."
-      // );
+      ROS_WARN(
+        "Only \"REAL_32U\" image type is supported, got type \"%s\" instead.", 
+        std::to_string(image_type).c_str());
       continue;
     }
 
