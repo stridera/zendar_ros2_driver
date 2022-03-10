@@ -1,27 +1,26 @@
 #pragma once
 
-#include <stdint.h>
 #include <pcl/register_point_struct.h>
 
 namespace zen {
 struct ZendarPoint {
-    float x;
-    float y;
-    float z;
-    double x_ecef;
-    double y_ecef;
-    double z_ecef;
-    float mag;
-    float az_var;
-    float el_var;
-    float r;
-    float rad_vel;
-    float az;
-    float el;
-    float doa_snr_db;
-    float rd_mean_snr_db;
+  float x;
+  float y;
+  float z;
+  double x_ecef;
+  double y_ecef;
+  double z_ecef;
+  float mag;
+  float az_var;
+  float el_var;
+  float r;
+  float rad_vel;
+  float az;
+  float el;
+  float doa_snr_db;
+  float rd_mean_snr_db;
 };
-} // namespace zen
+}  // namespace zen
 
 POINT_CLOUD_REGISTER_POINT_STRUCT(
     zen::ZendarPoint,
