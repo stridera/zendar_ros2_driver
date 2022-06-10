@@ -50,9 +50,6 @@ mkdir -p build && cd build
 Build the driver:
 ```
 cmake ..
-```
-Also, be sure to install the built binaries by: 
-```
 make -j4
 ```
 Source the driver by adding the following line to your .bashrc script (typically in ~/.bashrc):
