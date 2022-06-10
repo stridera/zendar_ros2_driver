@@ -11,8 +11,11 @@ int main(int argc, char** argv) {
   if (!node->getParam("url", url)) {
     ROS_FATAL("IP address of ZPU was not provided");
   }
-
-  zen::ZendarDriverNode converter(node, url, argc, argv);
+  float max_range;
+  if (!node->getParam("max_range", max_range)) {
+    ROS_FATAL("Maximum range for range marker display was not provided");
+  }
+  zen::ZendarDriverNode converter(node, url, max_range, argc, argv);
   converter.Run();
 
   return 0;

@@ -1,5 +1,7 @@
 #include "zendar_ros_driver/zendar_driver_node.h"
 #include "zendar_ros_driver/zendar_point.h"
+#include "zendar_ros_driver/range_markers.h"
+#include "zendar_ros_driver/ego_vehicle.h"
 
 // #include <ros/ros.h>
 // #include <diagnostic_msgs/DiagnosticArray.h>
@@ -206,11 +208,13 @@ namespace zen {
 ZendarDriverNode::ZendarDriverNode(
   const std::shared_ptr<ros::NodeHandle> node,
   const std::string& url,
+  const float max_range,
   int argc,
   char* argv[]
 )
   : node(CHECK_NOTNULL(node))
   , url(url)
+  , max_range(max_range)
 {
   api::ZenApi::Init(&argc, &argv);
 
@@ -244,7 +248,9 @@ ZendarDriverNode::~ZendarDriverNode()
 void ZendarDriverNode::Run()
 {
   ros::Rate loop_rate(LOOP_RATE_HZ);
-
+  // Publish range markers, and ego vehicle once since they are latched topics
+  this->ProcessRangeMarkers();
+  this->ProcessEgoVehicle();
   while (node->ok()) {
     this->ProcessImages();
     this->ProcessPointClouds();
@@ -310,6 +316,18 @@ ZendarDriverNode::ProcessPointClouds()
 
     this->points_metadata_pub.Publish(serial, pose_stamped);
   }
+}
+
+void ZendarDriverNode::ProcessRangeMarkers()
+{
+  auto range_markers = RangeMarkers(max_range);
+  this->range_markers_pub.publish(range_markers);
+}
+
+void ZendarDriverNode::ProcessEgoVehicle()
+{
+  auto ego_vehicle = EgoVehicle();
+  this->ego_vehicle_pub.publish(ego_vehicle);
 }
 
 void
