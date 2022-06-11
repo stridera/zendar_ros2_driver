@@ -1,4 +1,6 @@
-# Zendar Ros Driver
+# Zendar ROS Driver
+Zendar ROS driver is an open source library for demonstrating how to convert Zendar radar data streams to ROS streams using ZendarAPI. Specifically, this library receives incoming radar data streams, converts them to ROS topics and publish them in real-time. This allows the radar data to be visualized using standard viewers such as [WebViz](https://webviz.io/) or [FoxGlove](https://foxglove.dev/).
+
 ## Setup Instructions
 ### Install Dependencies
 
@@ -59,7 +61,7 @@ source /PATH_TO_ZENDAR_ROS_DRIVER/build/devel/setup.bash
 
 ## Running Zendar ROS Driver
 ### Real-time Streaming
-After ensuring that shannon_control and the radars are running, the ROS plugin for visualization can be run:
+After the radars are started, the ROS plugin for visualization can be run:
 ```
 roslaunch zendar_ros_driver zendar.launch target_url:=URL
 ```
