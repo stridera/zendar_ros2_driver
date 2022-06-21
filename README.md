@@ -36,7 +36,7 @@ Clone the zendar_ros_driver repository:
 ```
 git@github.com:ZendarInc/zendar_ros_driver.git
 ```
-Source your .bash_profile:
+Source your .bash_profile (e.g. ~/.bashrc):
 ```
 source ~/.bash_profile
 ```
