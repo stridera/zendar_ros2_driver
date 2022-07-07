@@ -38,7 +38,6 @@ constexpr float IM_DYN_RANGE_MIN           = std::pow(10.0, (55.0 / 20.0));  ///
 const float ATAN_SCALE_FACTOR          = std::tan(0.99 * M_PI_2);
 
 // Parameters for occupancy grid display
-const int DISPLAY_THRESHOLD = 60;
 const int OCCUPIED_VALUE = 0;
 const int UNOCCUPIED_VALUE = 100;
 
@@ -233,7 +232,7 @@ ConvertToRosGrid(
   grid_msg.info.origin = pose;
 
   for (int i = 0; i < width * width; i++) {
-    int val = (occ_grid.grid(i) < DISPLAY_THRESHOLD) ?
+    int val = occ_grid.grid(i) ?
                   UNOCCUPIED_VALUE : OCCUPIED_VALUE;
     grid_msg.data.push_back(val);
   }
