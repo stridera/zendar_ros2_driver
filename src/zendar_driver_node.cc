@@ -38,8 +38,8 @@ constexpr float IM_DYN_RANGE_MIN           = std::pow(10.0, (55.0 / 20.0));  ///
 const float ATAN_SCALE_FACTOR          = std::tan(0.99 * M_PI_2);
 
 // Parameters for occupancy grid display
-const int OCCUPIED_VALUE = 0;
-const int UNOCCUPIED_VALUE = 100;
+const int OCCUPIED_VALUE = 100;
+const int UNOCCUPIED_VALUE = 0;
 
 struct ImageNormal
 {
@@ -208,10 +208,11 @@ ConvertToPoseStamped(
 nav_msgs::OccupancyGrid
 ConvertToRosGrid(
   const zpb::drivable_area::OccGridMessage& occ_grid) {
-    nav_msgs::OccupancyGrid grid_msg;
-    double timestamp = occ_grid.timestamp();
-    int width = occ_grid.ncols();
-    double res = occ_grid.grid_res();
+
+  nav_msgs::OccupancyGrid grid_msg;
+  double timestamp = occ_grid.timestamp();
+  int width = occ_grid.ncols();
+  double res = occ_grid.grid_res();
 
   grid_msg.header.frame_id = "map";
   grid_msg.header.stamp = ros::Time(timestamp);
