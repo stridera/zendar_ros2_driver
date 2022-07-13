@@ -10,6 +10,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 #include <tf2_ros/static_transform_broadcaster.h>
 
 /// \namespace -----------------------------------------------------------------
@@ -40,11 +41,14 @@ private:
   void ProcessRangeMarkers();
   void ProcessEgoVehicle();
   void ProcessOccupancyGrid();
+  void ProcessTracks();
 
   void ProcessHKGpsStatus(const zpb::telem::HousekeepingReport& report);
   void ProcessHKSensorIdentity(const zpb::telem::HousekeepingReport& report);
   void PublishExtrinsic(const zpb::telem::SensorIdentity& id);
   void PublishVehicleToMap();
+  // TODO: Think about logic/where to put, which methods are needed?
+  void PublishTracks(const zpb::tracker::message::TrackerState& cloud_data);
 
 private:
   std::shared_ptr<ros::NodeHandle> node;
@@ -60,6 +64,7 @@ private:
   ros::Publisher pose_quality_pub = this->node->advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 100);
 
   ros::Publisher occupancy_grid_pub = this->node->advertise<nav_msgs::OccupancyGrid>("/occupancy_grid", 100);
+  ros::Publisher tracks_pub = this->node->advertise<visualization_msgs::MarkerArray>("/tracks", 100);
 
   // Create range marker, and ego vehicle publisher as latched topics
   ros::Publisher range_markers_pub

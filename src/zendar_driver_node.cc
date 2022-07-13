@@ -303,10 +303,133 @@ void ZendarDriverNode::Run()
     this->ProcessImages();
     this->ProcessPointClouds();
     this->ProcessOccupancyGrid();
+    this->ProcessTracks();
     this->ProcessPoseMessages();
     this->ProcessLogMessages();
     this->ProcessHousekeepingReports();
     loop_rate.sleep();
+  }
+}
+
+void
+ZendarDriverNode::PublishTracks(
+  const zpb::drivable_area::Tracks& tracks)
+{
+  visualization_msgs::MarkerArray track_msgs;
+
+  // Fill msgs
+  for (auto track : tracks.track()) {
+    // Create bbox msg
+    visualization_msgs::Marker bbox_msg;
+
+    // Define header
+    // TODO: "map" or "vehicle" ?!
+    bbox_msg.header.frame_id = "vehicle";
+    bbox_msg.header.stamp = ros::Time(tracks.timestamp());
+
+    // Define type of marker (5 = Line list)
+    bbox_msg.type = 5;
+    bbox_msg.action = 0;
+    // TODO: Think about lifetime, ideally 1 frame (maybe not really needed since .id specifies correspondence of objects across frames)
+    //       Still how to delete terminated tracks?!
+    bbox_msg.lifetime = ros::Duration(0);
+    // TODO: Rename to id in proto
+    bbox_msg.id = track.id();
+
+    // Define scale
+    bbox_msg.scale.x = 1;
+    bbox_msg.scale.y = 1;
+    bbox_msg.scale.z = 1;
+
+    // Define color
+    bbox_msg.color.r = track.color().x();
+    bbox_msg.color.g = track.color().y();
+    bbox_msg.color.b = track.color().z();
+    bbox_msg.color.a = 1;
+
+    // Define pose
+    // TODO: Pose is maybe just the identity transformation
+    geometry_msgs::Pose pose;
+    pose.position.x = track.bbox_center().x();
+    pose.position.y = track.bbox_center().y();
+    pose.position.z = track.bbox_center().z();
+    pose.orientation.x = 0;
+    pose.orientation.y = 0;
+    pose.orientation.z = 0;
+    pose.orientation.w = 1;
+    bbox_msg.pose = pose;
+    // TODO: bbox_edges must store edges (e.g. (min,1), (min,2), (min,4), (1,3), (1,5), (2,3), (2,6), (3, max), (4,5), (4,6), (5,max), (6,max))
+    // Otherwise, markermsg won't display correctly
+    for (int i = 0; i < track.bbox_edges().size() - 1; i += 2) {
+      // Define geometry msgs for corners
+      for (auto corner : {track.bbox_edges()[i], track.bbox_edges()[i+1]}) {
+        geometry_msgs::Point corner_msg;
+        corner_msg.x = corner.x();
+        corner_msg.y = corner.y();
+        corner_msg.z = corner.z();
+        bbox_msg.points.push_back(corner_msg);
+      }
+    }
+
+    // Create velocity msg
+    visualization_msgs::Marker velocity_msg;
+
+    // Define header
+    velocity_msg.header.frame_id = "vehicle";
+    velocity_msg.header.stamp = ros::Time(tracks.timestamp());
+
+    // Define type of marker (0 = Arrow)
+    velocity_msg.type = 0;
+    velocity_msg.action = 0;
+    // TODO: Think about lifetime, ideally until new state or track deleted
+    velocity_msg.lifetime = ros::Duration(0);
+    velocity_msg.id = track.id();
+
+    // Define scale (scale.x = Length of arrow)
+    velocity_msg.scale.x = 1;
+    velocity_msg.scale.y = 1;
+    velocity_msg.scale.z = 1;
+
+    // Define color
+    velocity_msg.color.r = track.color().x();
+    velocity_msg.color.g = track.color().y();
+    velocity_msg.color.b = track.color().z();
+    velocity_msg.color.a = 1;
+
+    // TODO: Define pose either through start and end point or through position and orientation (First way preferred)
+    /*geometry_msgs::Pose pose;
+    pose.position.x = track.bbox_center()[0];
+    pose.position.y = track.bbox_center()[1];
+    pose.position.z = track.bbox_center()[2];
+
+    pose.orientation.x = 0;
+    pose.orientation.y = 0;
+    pose.orientation.z = 0;
+    pose.orientation.w = 1;
+    velocity_msg.pose = pose;*/
+    // Define start and end point (End point = First entry of points, start point = second)
+    geometry_msgs::Point end_point_msg;
+    end_point_msg.x = track.bbox_center().x() + track.velocity().x();
+    end_point_msg.y = track.bbox_center().y() + track.velocity().y();
+    end_point_msg.z = track.bbox_center().z() + track.velocity().z();
+    velocity_msg.points.push_back(end_point_msg);
+
+    geometry_msgs::Point start_point_msg;
+    start_point_msg.x = track.bbox_center().x();
+    start_point_msg.y = track.bbox_center().y();
+    start_point_msg.z = track.bbox_center().z();
+    velocity_msg.points.push_back(start_point_msg);
+
+    track_msgs.markers.push_back(bbox_msg);
+    track_msgs.markers.push_back(velocity_msg);
+  }
+  this->tracks_pub.publish(track_msgs);
+}
+
+void ZendarDriverNode::ProcessTracks()
+{
+  while (auto tracks = ZenApi::NextTracks(ZenApi::NO_WAIT)) {
+    PublishTracks(*tracks);
   }
 }
 
@@ -373,6 +496,7 @@ ZendarDriverNode::ProcessOccupancyGrid()
     this->occupancy_grid_pub.publish(ConvertToRosGrid(*occ_grid));
   }
 }
+
 void ZendarDriverNode::ProcessRangeMarkers()
 {
   auto range_markers = RangeMarkers(max_range);
