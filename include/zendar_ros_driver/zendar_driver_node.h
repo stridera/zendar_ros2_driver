@@ -47,11 +47,8 @@ private:
   void ProcessHKSensorIdentity(const zpb::telem::HousekeepingReport& report);
   void PublishExtrinsic(const zpb::telem::SensorIdentity& id);
   void PublishVehicleToMap();
-  // TODO: Think about logic/where to put, which methods are needed?
-  //void PublishTracks(const zpb::drivable_area::Tracks& tracks);
-  void PublishTracks();
+  void PublishTracks(const zpb::drivable_area::Tracks& tracks);
 
-private:
   std::shared_ptr<ros::NodeHandle> node;
   image_transport::ImageTransport image_transport{*this->node};
 
