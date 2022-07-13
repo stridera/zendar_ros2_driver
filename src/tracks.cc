@@ -3,8 +3,7 @@ namespace zen {
 visualization_msgs::MarkerArray
 Tracks(const zpb::drivable_area::Tracks& tracks){
   visualization_msgs::MarkerArray track_msgs;
-  // TODO: Type of track?
-  for (auto track : tracks.track()) {
+  for (const zpb::drivable_area::Track& track : tracks.track()) {
     // Iterate over edges of bounding box (= bounding box visualization
     // represented by list of edges msgs)
     for (int edge_id = 0; edge_id < track.bbox_edges().size() - 1; edge_id += 2) {
@@ -19,7 +18,7 @@ Tracks(const zpb::drivable_area::Tracks& tracks){
 }
 
 visualization_msgs::Marker
-CreateEdgeMsg(track, int& edge_id) {
+CreateEdgeMsg(const zpb::drivable_area::Track& track, int& edge_id) {
   visualization_msgs::Marker edge_msg;
 
   // Define header
@@ -86,7 +85,7 @@ CreateEdgeMsg(track, int& edge_id) {
 }
 
 visualization_msgs::Marker
-CreateVelocityMsg(track) {
+CreateVelocityMsg(const zpb::drivable_area::Track& track) {
   visualization_msgs::Marker velocity_msg;
 
   // Define header

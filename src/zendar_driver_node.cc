@@ -2,6 +2,7 @@
 #include "zendar_ros_driver/zendar_point.h"
 #include "zendar_ros_driver/range_markers.h"
 #include "zendar_ros_driver/ego_vehicle.h"
+#include "zendar_ros_driver/tracks.h"
 
 // #include <ros/ros.h>
 // #include <diagnostic_msgs/DiagnosticArray.h>
@@ -268,7 +269,7 @@ ZendarDriverNode::ZendarDriverNode(
   api::ZenApi::SubscribeImages();
   api::ZenApi::SubscribeTrackerStates();
   api::ZenApi::SubscribeTracklogs();
-  //api::ZenApi::SubscribeOccupancyGrid();
+  api::ZenApi::SubscribeOccupancyGrid();
 
   api::ZenApi::SubscribeLogMessages(LOG_MSG_QUEUE);
   api::ZenApi::SubscribeHousekeepingReports();
@@ -279,7 +280,7 @@ ZendarDriverNode::~ZendarDriverNode()
   api::ZenApi::UnsubscribeImages();
   api::ZenApi::UnsubscribeTrackerStates();
   api::ZenApi::UnsubscribeTracklogs();
-  //api::ZenApi::UnsubscribeOccupancyGrid();
+  api::ZenApi::UnsubscribeOccupancyGrid();
 
   api::ZenApi::UnsubscribeLogMessages();
   api::ZenApi::UnsubscribeHousekeepingReports();

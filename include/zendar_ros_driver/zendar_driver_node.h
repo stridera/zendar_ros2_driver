@@ -47,7 +47,6 @@ private:
   void ProcessHKSensorIdentity(const zpb::telem::HousekeepingReport& report);
   void PublishExtrinsic(const zpb::telem::SensorIdentity& id);
   void PublishVehicleToMap();
-  void PublishTracks(const zpb::drivable_area::Tracks& tracks);
 
   std::shared_ptr<ros::NodeHandle> node;
   image_transport::ImageTransport image_transport{*this->node};

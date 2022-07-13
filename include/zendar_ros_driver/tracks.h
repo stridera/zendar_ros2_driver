@@ -9,7 +9,7 @@
 namespace zen {
 visualization_msgs::MarkerArray Tracks(const zpb::drivable_area::Tracks& tracks);
 // TODO: Find out type of track
-visualization_msgs::Marker CreateEdgeMsg(track,
+visualization_msgs::Marker CreateEdgeMsg(const zpb::drivable_area::Track& track,
                                          int& edge_id);
-visualization_msgs::Marker CreateVelocityMsg(track)
+visualization_msgs::Marker CreateVelocityMsg(const zpb::drivable_area::Track& track);
 }  // namespace zen
