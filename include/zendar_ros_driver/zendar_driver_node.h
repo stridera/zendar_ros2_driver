@@ -48,7 +48,8 @@ private:
   void PublishExtrinsic(const zpb::telem::SensorIdentity& id);
   void PublishVehicleToMap();
   // TODO: Think about logic/where to put, which methods are needed?
-  void PublishTracks(const zpb::tracker::message::TrackerState& cloud_data);
+  //void PublishTracks(const zpb::drivable_area::Tracks& tracks);
+  void PublishTracks();
 
 private:
   std::shared_ptr<ros::NodeHandle> node;

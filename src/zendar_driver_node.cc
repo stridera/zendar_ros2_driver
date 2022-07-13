@@ -205,7 +205,7 @@ ConvertToPoseStamped(
   return pose_stamped_msg;
 }
 
-nav_msgs::OccupancyGrid
+/*nav_msgs::OccupancyGrid
 ConvertToRosGrid(
   const zpb::drivable_area::OccGridMessage& occ_grid) {
 
@@ -238,7 +238,7 @@ ConvertToRosGrid(
     grid_msg.data.push_back(val);
   }
   return grid_msg;
-}
+}*/
 
 }  // namespace
 
@@ -268,7 +268,7 @@ ZendarDriverNode::ZendarDriverNode(
   api::ZenApi::SubscribeImages();
   api::ZenApi::SubscribeTrackerStates();
   api::ZenApi::SubscribeTracklogs();
-  api::ZenApi::SubscribeOccupancyGrid();
+  //api::ZenApi::SubscribeOccupancyGrid();
 
   api::ZenApi::SubscribeLogMessages(LOG_MSG_QUEUE);
   api::ZenApi::SubscribeHousekeepingReports();
@@ -279,7 +279,7 @@ ZendarDriverNode::~ZendarDriverNode()
   api::ZenApi::UnsubscribeImages();
   api::ZenApi::UnsubscribeTrackerStates();
   api::ZenApi::UnsubscribeTracklogs();
-  api::ZenApi::UnsubscribeOccupancyGrid();
+  //api::ZenApi::UnsubscribeOccupancyGrid();
 
   api::ZenApi::UnsubscribeLogMessages();
   api::ZenApi::UnsubscribeHousekeepingReports();
@@ -312,115 +312,232 @@ void ZendarDriverNode::Run()
 }
 
 void
-ZendarDriverNode::PublishTracks(
-  const zpb::drivable_area::Tracks& tracks)
+//ZendarDriverNode::PublishTracks(const zpb::drivable_area::Tracks& tracks)
+ZendarDriverNode::PublishTracks()
 {
   visualization_msgs::MarkerArray track_msgs;
+  std::vector<std::vector<float>> bbox_edges_0{{8, -1, 0},
+                                             {8, 1, 0},
 
-  // Fill msgs
-  for (auto track : tracks.track()) {
-    // Create bbox msg
-    visualization_msgs::Marker bbox_msg;
+                                             {8, -1, 0},
+                                             {12, -1, 0},
 
-    // Define header
-    // TODO: "map" or "vehicle" ?!
-    bbox_msg.header.frame_id = "vehicle";
-    bbox_msg.header.stamp = ros::Time(tracks.timestamp());
+                                             {8, -1, 0},
+                                             {8, -1, 3},
 
-    // Define type of marker (5 = Line list)
-    bbox_msg.type = 5;
-    bbox_msg.action = 0;
-    // TODO: Think about lifetime, ideally 1 frame (maybe not really needed since .id specifies correspondence of objects across frames)
-    //       Still how to delete terminated tracks?!
-    bbox_msg.lifetime = ros::Duration(0);
-    // TODO: Rename to id in proto
-    bbox_msg.id = track.id();
+                                             {8, 1, 0},
+                                             {12, 1, 0},
 
-    // Define scale
-    bbox_msg.scale.x = 1;
-    bbox_msg.scale.y = 1;
-    bbox_msg.scale.z = 1;
+                                             {8, 1, 0},
+                                             {8, 1, 3},
 
-    // Define color
-    bbox_msg.color.r = track.color().x();
-    bbox_msg.color.g = track.color().y();
-    bbox_msg.color.b = track.color().z();
-    bbox_msg.color.a = 1;
+                                             {8, -1, 3},
+                                             {12, -1, 3},
 
-    // Define pose
-    // TODO: Pose is maybe just the identity transformation
-    geometry_msgs::Pose pose;
-    pose.position.x = track.bbox_center().x();
-    pose.position.y = track.bbox_center().y();
-    pose.position.z = track.bbox_center().z();
-    pose.orientation.x = 0;
-    pose.orientation.y = 0;
-    pose.orientation.z = 0;
-    pose.orientation.w = 1;
-    bbox_msg.pose = pose;
-    // TODO: bbox_edges must store edges (e.g. (min,1), (min,2), (min,4), (1,3), (1,5), (2,3), (2,6), (3, max), (4,5), (4,6), (5,max), (6,max))
-    // Otherwise, markermsg won't display correctly
-    for (int i = 0; i < track.bbox_edges().size() - 1; i += 2) {
-      // Define geometry msgs for corners
-      for (auto corner : {track.bbox_edges()[i], track.bbox_edges()[i+1]}) {
-        geometry_msgs::Point corner_msg;
-        corner_msg.x = corner.x();
-        corner_msg.y = corner.y();
-        corner_msg.z = corner.z();
-        bbox_msg.points.push_back(corner_msg);
+                                             {8, 1, 3},
+                                             {8, -1, 3},
+
+                                             {12, 1, 3},
+                                             {12, -1, 3},
+
+                                             {12, 1, 0},
+                                             {12, 1, 3},
+
+                                             {8, 1, 3},
+                                             {12, 1, 3},
+
+                                             {12, 1, 0},
+                                             {12, -1, 0},
+
+                                             {12, -1, 3},
+                                             {12, -1, 0},
+                                             };
+
+  std::vector<std::vector<float>> bbox_edges_1{{20, -1, 0},
+                                             {20, -0.5, 0},
+
+                                             {20, -1, 0},
+                                             {21, -1, 0},
+
+                                             {20, -1, 0},
+                                             {20, -1, 1.8},
+
+                                             {20, -0.5, 0},
+                                             {21, -0.5, 0},
+
+                                             {20, -0.5, 0},
+                                             {20, -0.5, 1.8},
+
+                                             {20, -1, 1.8},
+                                             {21, -1, 1.8},
+
+                                             {20, -0.5, 1.8},
+                                             {20, -1, 1.8},
+
+                                             {21, -0.5, 1.8},
+                                             {21, -1, 1.8},
+
+                                             {21, -0.5, 0},
+                                             {21, -0.5, 1.8},
+
+                                             {20, -0.5, 1.8},
+                                             {21, -0.5, 1.8},
+
+                                             {21, -0.5, 0},
+                                             {21, -1, 0},
+
+                                             {21, -1, 1.8},
+                                             {21, -1, 0},
+                                             };
+
+  std::vector<std::vector<float>> bbox_edges_2{{30, -10, 10},
+                                             {30, -0.5, 10},
+
+                                             {30, -10, 10},
+                                             {40, -10, 10},
+
+                                             {30, -10, 10},
+                                             {30, -10, 1.8},
+
+                                             {30, -0.5, 10},
+                                             {40, -0.5, 10},
+
+                                             {30, -0.5, 10},
+                                             {30, -0.5, 1.8},
+
+                                             {30, -10, 1.8},
+                                             {40, -10, 1.8},
+
+                                             {30, -0.5, 1.8},
+                                             {30, -10, 1.8},
+
+                                             {40, -0.5, 1.8},
+                                             {40, -10, 1.8},
+
+                                             {40, -0.5, 10},
+                                             {40, -0.5, 1.8},
+
+                                             {30, -0.5, 1.8},
+                                             {40, -0.5, 1.8},
+
+                                             {40, -0.5, 10},
+                                             {40, -10, 10},
+
+                                             {40, -10, 1.8},
+                                             {40, -10, 10},
+                                             };
+
+  std::vector<std::vector<std::vector<float>>> tracks{bbox_edges_0, bbox_edges_1, bbox_edges_2};
+  int object_id = 0;
+  for (auto bbox_edges : tracks) {
+    // Iterate over edges of bounding box to create bounding box (= bounding box
+    // represented by list of edges msgs)
+    for (int i = 0; i < bbox_edges.size() - 1; i += 2) {
+      // Create edge msg
+      visualization_msgs::Marker edge_msg;
+
+      // Define header
+      edge_msg.header.frame_id = "map";
+      edge_msg.header.stamp = ros::Time::now();
+
+      //edge_msg.ns = std::to_string(track.id);
+      edge_msg.id = object_id;
+
+      // Define type of marker (0 = Arrow)
+      edge_msg.type = 0;
+      edge_msg.action = 0;
+      edge_msg.lifetime = ros::Duration(0);
+
+      // Define pose (Identity since the actual pose of the edge is specified by
+      // its start and end point)
+      geometry_msgs::Pose pose;
+      pose.position.x = 0;
+      pose.position.y = 0;
+      pose.position.z = 0;
+      pose.orientation.x = 0;
+      pose.orientation.y = 0;
+      pose.orientation.z = 0;
+      pose.orientation.w = 1;
+      edge_msg.pose = pose;
+
+      // Define scale (Only want shaft of arrow => Set head diameter/length to 0)
+      edge_msg.scale.x = 0.3;   // shaft diameter
+      edge_msg.scale.y = 0;  // head diameter
+      edge_msg.scale.z = 0;  // head length
+
+      // Define color for each line
+      std_msgs::ColorRGBA color_msg;
+      edge_msg.color.r = 0;
+      edge_msg.color.g = 255;
+      edge_msg.color.b = 255;
+      edge_msg.color.a = 1;
+
+      // The next steps are needed to counteract the non-existing arrow head
+      std::vector<float> edge{0, 0, 0};
+      for (int dim_index = 0; dim_index < bbox_edges[i].size(); dim_index++) {
+        float dim_diff = bbox_edges[i+1][dim_index] - bbox_edges[i][dim_index];
+        edge[dim_index] = dim_diff;
       }
-    }
 
+      geometry_msgs::Point end_point_msg;
+      // The default shaft:head ratio in rviz is 1:0.3 (see rviz repo).
+      // Therefore, mulitply edge by the following scale factor to get an arrow
+      // only consisting of a body (without a head) the same length as the edge
+      float scale_factor = 1 / (1 - 0.3);
+      end_point_msg.x = bbox_edges[i][0] + scale_factor * edge[0];
+      end_point_msg.y = bbox_edges[i][1] + scale_factor * edge[1];
+      end_point_msg.z = bbox_edges[i][2] + scale_factor * edge[2];
+
+      geometry_msgs::Point start_point_msg;
+      start_point_msg.x = bbox_edges[i][0];
+      start_point_msg.y = bbox_edges[i][1];
+      start_point_msg.z = bbox_edges[i][2];
+
+      edge_msg.points.push_back(start_point_msg);
+      edge_msg.points.push_back(end_point_msg);
+
+      track_msgs.markers.push_back(edge_msg);
+      object_id++;
+    }
     // Create velocity msg
     visualization_msgs::Marker velocity_msg;
 
     // Define header
-    velocity_msg.header.frame_id = "vehicle";
-    velocity_msg.header.stamp = ros::Time(tracks.timestamp());
+    velocity_msg.header.frame_id = "map";
+    velocity_msg.header.stamp =ros::Time::now();
 
     // Define type of marker (0 = Arrow)
     velocity_msg.type = 0;
     velocity_msg.action = 0;
-    // TODO: Think about lifetime, ideally until new state or track deleted
     velocity_msg.lifetime = ros::Duration(0);
-    velocity_msg.id = track.id();
+    //velocity_msg.ns = std::to_string(track.id);
+    velocity_msg.id = object_id;
+    object_id++;
 
-    // Define scale (scale.x = Length of arrow)
-    velocity_msg.scale.x = 1;
-    velocity_msg.scale.y = 1;
-    velocity_msg.scale.z = 1;
+    // Define scale
+    velocity_msg.scale.x = 0.1;  // shaft diameter
+    velocity_msg.scale.y = 0.3;  // head diameter
+    velocity_msg.scale.z = 0.3;  // head length
 
     // Define color
-    velocity_msg.color.r = track.color().x();
-    velocity_msg.color.g = track.color().y();
-    velocity_msg.color.b = track.color().z();
+    velocity_msg.color.r = 0;
+    velocity_msg.color.g = 255;
+    velocity_msg.color.b = 255;
     velocity_msg.color.a = 1;
 
-    // TODO: Define pose either through start and end point or through position and orientation (First way preferred)
-    /*geometry_msgs::Pose pose;
-    pose.position.x = track.bbox_center()[0];
-    pose.position.y = track.bbox_center()[1];
-    pose.position.z = track.bbox_center()[2];
-
-    pose.orientation.x = 0;
-    pose.orientation.y = 0;
-    pose.orientation.z = 0;
-    pose.orientation.w = 1;
-    velocity_msg.pose = pose;*/
-    // Define start and end point (End point = First entry of points, start point = second)
     geometry_msgs::Point end_point_msg;
-    end_point_msg.x = track.bbox_center().x() + track.velocity().x();
-    end_point_msg.y = track.bbox_center().y() + track.velocity().y();
-    end_point_msg.z = track.bbox_center().z() + track.velocity().z();
-    velocity_msg.points.push_back(end_point_msg);
+    end_point_msg.x = 10 + 5;
+    end_point_msg.y = 0 + 0;
+    end_point_msg.z = 1.5 + 0;
 
     geometry_msgs::Point start_point_msg;
-    start_point_msg.x = track.bbox_center().x();
-    start_point_msg.y = track.bbox_center().y();
-    start_point_msg.z = track.bbox_center().z();
-    velocity_msg.points.push_back(start_point_msg);
+    start_point_msg.x = 10;
+    start_point_msg.y = 0;
+    start_point_msg.z = 1.5;
 
-    track_msgs.markers.push_back(bbox_msg);
+    velocity_msg.points.push_back(start_point_msg);
+    velocity_msg.points.push_back(end_point_msg);
+
     track_msgs.markers.push_back(velocity_msg);
   }
   this->tracks_pub.publish(track_msgs);
@@ -428,9 +545,10 @@ ZendarDriverNode::PublishTracks(
 
 void ZendarDriverNode::ProcessTracks()
 {
-  while (auto tracks = ZenApi::NextTracks(ZenApi::NO_WAIT)) {
-    PublishTracks(*tracks);
-  }
+  PublishTracks();
+  //while (auto tracks = ZenApi::NextTracks(ZenApi::NO_WAIT)) {
+  //  PublishTracks(*tracks);
+  //}
 }
 
 void ZendarDriverNode::ProcessImages()
@@ -492,9 +610,9 @@ ZendarDriverNode::ProcessPointClouds()
 void
 ZendarDriverNode::ProcessOccupancyGrid()
 {
-  while(auto occ_grid = ZenApi::NextOccupancyGrid(ZenApi::NO_WAIT)) {
-    this->occupancy_grid_pub.publish(ConvertToRosGrid(*occ_grid));
-  }
+  //while(auto occ_grid = ZenApi::NextOccupancyGrid(ZenApi::NO_WAIT)) {
+  //  this->occupancy_grid_pub.publish(ConvertToRosGrid(*occ_grid));
+  //}
 }
 
 void ZendarDriverNode::ProcessRangeMarkers()
@@ -570,7 +688,7 @@ ZendarDriverNode::ProcessHKGpsStatus(const zpb::telem::HousekeepingReport& repor
 {
   if (report.report_case() != zpb::telem::HousekeepingReport::kGpsStatus) {
     return;
-  }
+  };
   const auto& message = report.gps_status();
 
   diagnostic_msgs::DiagnosticArray diagnostics;
