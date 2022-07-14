@@ -102,7 +102,7 @@ CreateVelocityMsg(const zpb::drivable_area::Track& track) {
   // Define scale
   velocity_msg.scale.x = VELOCITY_SHAFT_DIAMETER;  // shaft diameter
   velocity_msg.scale.y = VELOCITY_HEAD_DIAMETER;  // head diameter
-  velocity_msg.scale.z = Velocity_HEAD_LENGTH;  // head length
+  velocity_msg.scale.z = VELOCITY_HEAD_LENGTH;  // head length
 
   // Define color
   velocity_msg.color.r = track.color().x();
