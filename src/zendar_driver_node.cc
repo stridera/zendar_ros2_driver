@@ -457,7 +457,7 @@ ZendarDriverNode::ProcessHKGpsStatus(const zpb::telem::HousekeepingReport& repor
 {
   if (report.report_case() != zpb::telem::HousekeepingReport::kGpsStatus) {
     return;
-  };
+  }
   const auto& message = report.gps_status();
 
   diagnostic_msgs::DiagnosticArray diagnostics;
