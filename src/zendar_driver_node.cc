@@ -209,10 +209,11 @@ ConvertToPoseStamped(
 nav_msgs::OccupancyGrid
 ConvertToRosGrid(
   const zpb::drivable_area::OccGridMessage& occ_grid) {
-    nav_msgs::OccupancyGrid grid_msg;
-    double timestamp = occ_grid.timestamp();
-    int width = occ_grid.ncols();
-    double res = occ_grid.grid_res();
+
+  nav_msgs::OccupancyGrid grid_msg;
+  double timestamp = occ_grid.timestamp();
+  int width = occ_grid.ncols();
+  double res = occ_grid.grid_res();
 
   grid_msg.header.frame_id = "map";
   grid_msg.header.stamp = ros::Time(timestamp);
@@ -234,7 +235,7 @@ ConvertToRosGrid(
 
   for (int i = 0; i < width * width; i++) {
     int val = occ_grid.grid(i) ?
-                  UNOCCUPIED_VALUE : OCCUPIED_VALUE;
+                  OCCUPIED_VALUE : UNOCCUPIED_VALUE;
     grid_msg.data.push_back(val);
   }
   return grid_msg;

@@ -60,7 +60,7 @@ private:
 
   ros::Publisher pose_quality_pub = this->node->advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 100);
 
-  ros::Publisher occupancy_grid_pub = this->node->advertise<nav_msgs::OccupancyGrid>("/occupancy_grid", 1);
+  ros::Publisher occupancy_grid_pub = this->node->advertise<nav_msgs::OccupancyGrid>("/occupancy_grid", 100);
   ros::Publisher tracks_pub = this->node->advertise<visualization_msgs::MarkerArray>("/tracks", 100);
 
   // Create range marker, and ego vehicle publisher as latched topics
