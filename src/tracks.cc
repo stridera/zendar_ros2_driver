@@ -47,7 +47,7 @@ CreateEdgeMsg(const zpb::drivable_area::Track& track, int& edge_id) {
   edge_msg.pose = pose;
 
   // Define scale (Only want shaft of arrow => Set head diameter/length to 0)
-  edge_msg.scale.x = 0.3;  // shaft diameter
+  edge_msg.scale.x = EDGE_DIAMETER;  // shaft diameter
   edge_msg.scale.y = 0;  // head diameter
   edge_msg.scale.z = 0;  // head length
 
@@ -100,9 +100,9 @@ CreateVelocityMsg(const zpb::drivable_area::Track& track) {
   velocity_msg.id = -1;
 
   // Define scale
-  velocity_msg.scale.x = 0.1;  // shaft diameter
-  velocity_msg.scale.y = 0.3;  // head diameter
-  velocity_msg.scale.z = 0.3;  // head length
+  velocity_msg.scale.x = VELOCITY_SHAFT_DIAMETER;  // shaft diameter
+  velocity_msg.scale.y = VELOCITY_HEAD_DIAMETER;  // head diameter
+  velocity_msg.scale.z = Velocity_HEAD_LENGTH;  // head length
 
   // Define color
   velocity_msg.color.r = track.color().x();
