@@ -311,14 +311,6 @@ void ZendarDriverNode::Run()
   }
 }
 
-void ZendarDriverNode::ProcessTracks()
-{
-  while (auto tracks = ZenApi::NextTracks(ZenApi::NO_WAIT)) {
-    auto tracks_msg = Tracks(*tracks);
-    this->tracks_pub.publish(tracks_msg);
-  }
-}
-
 void ZendarDriverNode::ProcessImages()
 {
   while (auto image = ZenApi::NextImage(ZenApi::NO_WAIT)) {
@@ -380,6 +372,14 @@ ZendarDriverNode::ProcessOccupancyGrid()
 {
   while(auto occ_grid = ZenApi::NextOccupancyGrid(ZenApi::NO_WAIT)) {
     this->occupancy_grid_pub.publish(ConvertToRosGrid(*occ_grid));
+  }
+}
+
+void ZendarDriverNode::ProcessTracks()
+{
+  while (auto tracks = ZenApi::NextTracks(ZenApi::NO_WAIT)) {
+    auto tracks_msg = Tracks(*tracks);
+    this->tracks_pub.publish(tracks_msg);
   }
 }
 
