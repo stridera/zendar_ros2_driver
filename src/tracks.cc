@@ -6,7 +6,9 @@ Tracks(const zpb::drivable_area::Tracks& tracks){
   for (const zpb::drivable_area::Track& track : tracks.track()) {
     // Iterate over edges of bounding box (= bounding box visualization
     // represented by list of edges msgs)
-    for (int edge_id = 0; edge_id < track.bbox_edges().size() - 1; edge_id += 2) {
+    for (std::size_t edge_id = 0; edge_id < track.bbox_edges().size() - 1;
+         edge_id += 2)
+    {
       edge_msg = CreateEdgeMsg(track, edge_id);
       track_msgs.markers.push_back(edge_msg);
     }
