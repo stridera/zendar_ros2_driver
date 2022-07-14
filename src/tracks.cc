@@ -30,9 +30,8 @@ CreateEdgeMsg(const zpb::drivable_area::Track& track, int& edge_id) {
   edge_msg.ns = std::to_string(track.id());
   edge_msg.id = edge_id;
 
-  // Define type of marker (0 = Arrow)
-  edge_msg.type = 0;
-  edge_msg.action = 0;
+  edge_msg.type = visualization_msgs::Marker::ARROW;
+  edge_msg.action = visualization_msgs::Marker::ADD;
   edge_msg.lifetime = ros::Duration(0);
 
   // Define pose (Identity since the actual pose of the edge is specified by
@@ -94,9 +93,8 @@ CreateVelocityMsg(const zpb::drivable_area::Track& track) {
   velocity_msg.header.frame_id = "map";
   velocity_msg.header.stamp =ros::Time::now();
 
-  // Define type of marker (0 = Arrow)
-  velocity_msg.type = 0;
-  velocity_msg.action = 0;
+  velocity_msg.type = visualization_msgs::Marker::ARROW;
+  velocity_msg.action = visualization_msgs::Marker::ADD;
   velocity_msg.lifetime = ros::Duration(0);
   velocity_msg.ns = std::to_string(track.id());
   velocity_msg.id = -1;
