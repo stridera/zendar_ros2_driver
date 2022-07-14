@@ -4,6 +4,6 @@
     args="record -o $(arg output_name)
             /rosout /rosout_agg /tf /tf_static /diagnostics /pose /zpu_logs
             -e /zendar_driver_node/points_(.*) /zendar_driver_node/image_(.*)/compressed
-            /zendar_driver_node/points_metadata_(.*) /range_markers /ego_vehicle"
+            /zendar_driver_node/points_metadata_(.*) /range_markers /ego_vehicle /occupancy_grid"
   />
 </launch>
