@@ -38,8 +38,8 @@ constexpr float IM_DYN_RANGE_MIN           = std::pow(10.0, (55.0 / 20.0));  ///
 const float ATAN_SCALE_FACTOR          = std::tan(0.99 * M_PI_2);
 
 // Parameters for occupancy grid display
-const int OCCUPIED_VALUE = 100;
-const int UNOCCUPIED_VALUE = 0;
+const int OCCUPIED_VALUE = 0;
+const int UNOCCUPIED_VALUE = 100;
 
 struct ImageNormal
 {
@@ -234,7 +234,7 @@ ConvertToRosGrid(
 
   for (int i = 0; i < width * width; i++) {
     int val = occ_grid.grid(i) ?
-                  UNOCCUPIED_VALUE : OCCUPIED_VALUE;
+                  OCCUPIED_VALUE : UNOCCUPIED_VALUE;
     grid_msg.data.push_back(val);
   }
   return grid_msg;
