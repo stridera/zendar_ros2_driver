@@ -1,11 +1,12 @@
 #ifndef EGO_VEHICLE_H_
 #define EGO_VEHICLE_H_
-#include <visualization_msgs/Marker.h>
-#include <geometry_msgs/Pose.h>
-#include <geometry_msgs/Quaternion.h>
+#include <geometry_msgs/msg/pose.hpp>
+#include <geometry_msgs/msg/quaternion.hpp>
+#include <visualization_msgs/msg/marker.hpp>
 #include <zendar/api/api.h>
 
-namespace zen {
-visualization_msgs::Marker EgoVehicle();
+namespace zen
+{
+    visualization_msgs::msgMarker EgoVehicle();
 } // namespace zen
 #endif // EGO_VEHICLE_H_
