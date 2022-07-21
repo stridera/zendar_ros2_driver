@@ -24,7 +24,12 @@ ZenPointCloudNode::ZenPointCloudNode(int argc, char *argv[]) : Node("zen_pointcl
     zen::api::ZenApi::SubscribeTrackerStates();
 }
 
-ZenPointCloudNode::~ZenPointCloudNode(){};
+ZenPointCloudNode::~ZenPointCloudNode()
+{
+    zen::api::ZenApi::UnsubscribeTrackerStates();
+    zen::api::ZenApi::Release();
+    zen::api::ZenApi::Disconnect();
+}
 
 void ZenPointCloudNode::Process()
 {

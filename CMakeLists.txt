@@ -40,7 +40,7 @@ ament_target_dependencies(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   zen::zendar_api
-  unwind
+  /usr/lib/x86_64-linux-gnu/libunwind.so.8
 )
 
 install(TARGETS
