@@ -14,6 +14,6 @@ private:
     rclcpp::TimerBase::SharedPtr timer_;
 
     std::set<std::string> serials;
-    const std::string url;
+    std::string url;
     const std::string topic_prefix = "zen/";
 };

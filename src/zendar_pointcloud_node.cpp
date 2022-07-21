@@ -8,10 +8,10 @@ using namespace std::chrono_literals;
 
 ZenPointCloudNode::ZenPointCloudNode(int argc, char *argv[]) : Node("zen_pointcloud_node")
 {
+
     this->declare_parameter("url", std::string("192.168.1.9"));
     this->declare_parameter("max_range", 40.0);
-
-    timer_ = this->create_wall_timer(1000ms, std::bind(&ZenPointCloudNode::Process, this));
+    url = this->get_parameter("url").as_string();
 
     zen::api::ZenApi::Init(&argc, &argv);
 
@@ -22,6 +22,8 @@ ZenPointCloudNode::ZenPointCloudNode(int argc, char *argv[]) : Node("zen_pointcl
     zen::api::ZenApi::Bind(default_data_ports);
 
     zen::api::ZenApi::SubscribeTrackerStates();
+
+    timer_ = this->create_wall_timer(1000ms, std::bind(&ZenPointCloudNode::Process, this));
 }
 
 ZenPointCloudNode::~ZenPointCloudNode()

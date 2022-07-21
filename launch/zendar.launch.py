@@ -5,9 +5,9 @@ from launch_ros.actions import Node
 def generate_launch_description():
     return LaunchDescription([
         Node(
-            name='zendar_driver_node',
-            package='zendar_ros_driver',
-            executable='zendar_driver_node',
+            name='zendar_pointcloud_node',
+            package='zendar_pointcloud_node',
+            executable='zendar_pointcloud_node',
             output='screen',
             parameters=[{
                 'url': '192.168.1.9',
