@@ -4,7 +4,7 @@
 #include "zendar_ros_driver/zendar_point.h"
 
 #include <cv_bridge/cv_bridge.h>
-#include <pcl_ros/point_cloud.h>
+#include <pcl_conversions/pcl_conversions.h>
 
 #include <geometry_msgs/msg/transform_stamped.h>
 #include <glog/logging.h>
@@ -47,7 +47,7 @@ namespace
       auto source_cols = source.cartesian().data().cols();
       auto source_rows = source.cartesian().data().rows();
 
-      ROS_ASSERT(source_data.size() == sizeof(uint32_t) * source_cols * source_rows);
+      assert(source_data.size() == sizeof(uint32_t) * source_cols * source_rows);
       const auto *aligned_data = reinterpret_cast<const uint32_t *>(source_data.data());
 
       std::size_t downsampled_size = source_data.size() / (sizeof(uint32_t) * downsample_factor);
@@ -82,7 +82,7 @@ namespace
     ImageProcessor(const zpb::data::Image &source)
         : data(source.cartesian().data().data()), cols(source.cartesian().data().cols()), rows(source.cartesian().data().rows())
     {
-      ROS_ASSERT(this->data.size() == sizeof(uint32_t) * this->cols * this->rows);
+      LOG_ASSERT(this->data.size() == sizeof(uint32_t) * this->cols * this->rows);
     }
 
     ImageProcessor &
@@ -132,10 +132,10 @@ namespace
       return *this;
     }
 
-    sensor_msgs::msgImagePtr
+    sensor_msgs::msg::Image::SharedPtr
     Result()
     {
-      return cv_bridge::CvImage(std_msgs::msgHeader(), "bgr8", this->frame).toImageMsg();
+      return cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", this->frame).toImageMsg();
     }
 
   private:
@@ -212,9 +212,8 @@ namespace
     double res = occ_grid.grid_res();
 
     grid_msg.header.frame_id = "map";
-    grid_msg.header.stamp = ros::Time(timestamp);
-    grid_msg.header.seq = occ_grid.seq();
-    grid_msg.info.map_load_time = ros::Time(timestamp);
+    grid_msg.header.stamp = rclcpp::Time(timestamp, 0);
+    grid_msg.info.map_load_time = rclcpp::Time(timestamp, 0);
     grid_msg.info.resolution = res;
     grid_msg.info.width = width;
     grid_msg.info.height = width;
@@ -242,15 +241,27 @@ namespace
 /// \namespace -----------------------------------------------------------------
 namespace zen
 {
-  ZendarDriverNode::ZendarDriverNode(
-      const std::shared_ptr<ros::NodeHandle> node,
-      const std::string &url,
-      const float max_range,
-      int argc,
-      char *argv[])
-      : node(CHECK_NOTNULL(node)), url(url), max_range(max_range)
+  ZendarDriverNode::ZendarDriverNode() : rclcpp::Node("zen_driver_node")
   {
-    api::ZenApi::Init(&argc, &argv);
+    rclcpp::Parameter url = declare_parameter("url", std::string("192.168.1.9"));
+    rclcpp::Parameter max_range = declare_parameter("max_range", 40.0);
+    url = get_parameter("url");
+    max_range = get_parameter("max_range");
+
+    image_pub("image_", *this);
+    points_pub("points_", *this);
+    points_metadata_pub("points_metadata_", *this);
+
+    pose_pub = create_publisher<geometry_msgs::msg::PoseStamped>("/pose", 100);
+    logs_pub = create_publisher<rcl_interfaces::msg::Log>("/zpu_logs", 100);
+    pose_quality_pub = create_publisher<diagnostic_msgs::msg::DiagnosticArray>("/diagnostics", 100);
+    occupancy_grid_pub = create_publisher<nav_msgs::msg::OccupancyGrid>("/occupancy_grid", 100);
+
+    // Create range marker, and ego vehicle publisher as latched topics
+    range_markers_pub = create_publisher<nav_msgs::msg::OccupancyGrid>("/range_markers", 1, true);
+    ego_vehicle_pub = create_publisher<visualization_msgs::msg::Marker>("/ego_vehicle", 1, true);
+
+    api::ZenApi::Init();
 
     auto default_telem_ports = api::ZenApi::TelemPortOptions();
     api::ZenApi::Connect(url, default_telem_ports);
@@ -265,6 +276,8 @@ namespace zen
 
     api::ZenApi::SubscribeLogMessages(LOG_MSG_QUEUE);
     api::ZenApi::SubscribeHousekeepingReports();
+
+    timer_ = this->create_wall_timer(LOOP_RATE_HZ, std::bind(&ZendarDriverNode::Run, this));
   }
 
   ZendarDriverNode::~ZendarDriverNode()
@@ -292,7 +305,7 @@ namespace zen
     // Publish vehicle to map transform
     PublishVehicleToMap();
 
-    while (node->ok())
+    while (ok())
     {
       this->ProcessImages();
       this->ProcessPointClouds();
@@ -411,7 +424,7 @@ namespace zen
   {
     while (auto text_log = ZenApi::NextLogMessage(ZenApi::NO_WAIT))
     {
-      rosgraph_msgs::msgLog ros_message;
+      rcl_interfaces::msg::Log ros_message;
       switch (text_log->severity())
       {
       case google::INFO:
@@ -461,7 +474,7 @@ namespace zen
     }
     const auto &message = report.gps_status();
 
-    diagnostic_msgs::msgDiagnosticArray diagnostics;
+    diagnostic_msgs::msg::DiagnosticArray diagnostics;
     // diagnostics_array.header.stamp = ros::Time(report->timestamp());
 
     diagnostic_msgs::msgDiagnosticStatus gps_status;
@@ -540,7 +553,7 @@ namespace zen
   void ZendarDriverNode::PublishExtrinsic(const zpb::telem::SensorIdentity &id)
   {
     geometry_msgs::msgTransformStamped extrinsic_stamped;
-    extrinsic_stamped.header.stamp = ros::Time::now();
+    extrinsic_stamped.header.stamp = rclcpp::Clock().now();
     extrinsic_stamped.header.frame_id = "vehicle";
     extrinsic_stamped.child_frame_id = id.serial();
     extrinsic_stamped.transform.translation.x = id.extrinsic().t().x();
@@ -557,7 +570,7 @@ namespace zen
   void ZendarDriverNode::PublishVehicleToMap()
   {
     geometry_msgs::msgTransformStamped veh_to_map_stamped;
-    veh_to_map_stamped.header.stamp = ros::Time::now();
+    veh_to_map_stamped.header.stamp = rclcpp::Clock().now();
     veh_to_map_stamped.header.frame_id = "map";
     veh_to_map_stamped.child_frame_id = "vehicle";
     veh_to_map_stamped.transform.translation.x = 0;

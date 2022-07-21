@@ -7,6 +7,6 @@
 
 namespace zen
 {
-    visualization_msgs::msgMarker EgoVehicle();
+    visualization_msgs::msg::Marker EgoVehicle();
 } // namespace zen
 #endif // EGO_VEHICLE_H_

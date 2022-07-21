@@ -1,18 +1,20 @@
 #include "zendar_ros_driver/ego_vehicle.h"
 
+#include <rclcpp/rclcpp.hpp>
+
 namespace zen
 {
-  visualization_msgs::msgMarker EgoVehicle()
+  visualization_msgs::msg::Marker EgoVehicle()
   {
-    visualization_msgs::msgMarker ego_vehicle_msg;
+    visualization_msgs::msg::Marker ego_vehicle_msg;
     // Define header
     ego_vehicle_msg.header.frame_id = "map";
-    ego_vehicle_msg.header.stamp = ros::Time::now();
+    ego_vehicle_msg.header.stamp = rclcpp::Clock().now();
 
     // Define type of marker
     ego_vehicle_msg.type = 1;
     ego_vehicle_msg.action = 0;
-    ego_vehicle_msg.lifetime = ros::Duration(0);
+    ego_vehicle_msg.lifetime = rclcpp::Duration(0, 0);
 
     // Define scale
     ego_vehicle_msg.scale.x = 3;

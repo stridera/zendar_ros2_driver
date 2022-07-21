@@ -15,6 +15,9 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+set(ZenApi_DIR "/usr/share/zendar/cmake/")
+
+find_package(PCL REQUIRED QUIET COMPONENTS common features filters io segmentation surface)
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
@@ -23,10 +26,14 @@ find_package(OpenCV REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(diagnostic_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(image_transport REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(ZenApi)
+
 
 if(NOT OpenCV_FOUND)
   message(FATAL_ERROR "OpenCV not found. Install OpenCV from the command line using the command(s) --\
@@ -36,6 +43,7 @@ endif(NOT OpenCV_FOUND)
 include_directories(
   include/
   ${catkin_INCLUDE_DIRS}
+  ${pcl_conversions_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
   ${IMAGE_TRANSPORT_INCLUDE_DIRS}
@@ -56,14 +64,16 @@ ament_target_dependencies(${PROJECT_NAME}
   sensor_msgs
   visualization_msgs
   nav_msgs
-  image_transport
+  cv_bridge
+  pcl_conversions
+  tf2_ros
 )
 
 target_link_libraries(${PROJECT_NAME}
-  ${zendar_api_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${GFLAGS_LIBRARIES}
   ${PCL_LIBRARIES}
+  zen::zendar_api
   unwind
 )
 
