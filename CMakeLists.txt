@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(zendar_ros_driver)
+project(zendar_pointcloud_node)
 
 # Default to C11
 if(NOT CMAKE_C_STANDARD)
@@ -17,62 +17,28 @@ endif()
 
 set(ZenApi_DIR "/usr/share/zendar/cmake/")
 
-find_package(PCL REQUIRED QUIET COMPONENTS common features filters io segmentation surface)
-
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(OpenCV REQUIRED)
-find_package(std_msgs REQUIRED)
-find_package(diagnostic_msgs REQUIRED)
-find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(visualization_msgs REQUIRED)
-find_package(nav_msgs REQUIRED)
-find_package(tf2_ros REQUIRED)
-find_package(cv_bridge REQUIRED)
-find_package(pcl_conversions REQUIRED)
 find_package(ZenApi)
 
 
-if(NOT OpenCV_FOUND)
-  message(FATAL_ERROR "OpenCV not found. Install OpenCV from the command line using the command(s) --\
-      sudo apt-get install libopencv-dev")
-endif(NOT OpenCV_FOUND)
-
 include_directories(
-  include/
-  ${catkin_INCLUDE_DIRS}
-  ${pcl_conversions_INCLUDE_DIRS}
-  ${PCL_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
-  ${IMAGE_TRANSPORT_INCLUDE_DIRS}
+  include/${PROJECT_NAME}
 )
 
 add_executable(${PROJECT_NAME}
-  src/main.cc
-  src/ego_vehicle.cc
-  src/range_markers.cc
-  src/zendar_driver_node.cc
+  src/main.cpp
+  src/zendar_pointcloud_node.cpp
 )
 
 ament_target_dependencies(${PROJECT_NAME}
   rclcpp
-  std_msgs
-  diagnostic_msgs
-  geometry_msgs
   sensor_msgs
-  visualization_msgs
-  nav_msgs
-  cv_bridge
-  pcl_conversions
-  tf2_ros
 )
 
 target_link_libraries(${PROJECT_NAME}
-  ${OpenCV_LIBRARIES}
-  ${GFLAGS_LIBRARIES}
-  ${PCL_LIBRARIES}
   zen::zendar_api
   unwind
 )
@@ -83,13 +49,6 @@ install(TARGETS
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
-
-  # the following line skips the linter which checks for copyrights
-  # uncomment the line when a copyright and license is not present in all source files
-  # set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # uncomment the line when this package is not in a git repo
-  # set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
 
