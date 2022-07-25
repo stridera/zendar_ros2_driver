@@ -1,15 +1,16 @@
 #include "zendar_pointcloud_node.h"
 
-#include <zendar/api/api.h>
-
 #include "sensor_msgs/point_cloud2_iterator.hpp"
+#include <gflags/gflags.h>
+
+#include <zendar/api/api.h>
 
 using namespace std::chrono_literals;
 
 ZenPointCloudNode::ZenPointCloudNode(int argc, char *argv[]) : Node("zen_pointcloud_node")
 {
 
-    this->declare_parameter("url", std::string("192.168.1.9"));
+    this->declare_parameter("url", std::string("169.254.0.150"));
     this->declare_parameter("max_range", 40.0);
     url = this->get_parameter("url").as_string();
 
@@ -20,6 +21,18 @@ ZenPointCloudNode::ZenPointCloudNode(int argc, char *argv[]) : Node("zen_pointcl
 
     auto default_data_ports = zen::api::ZenApi::DataPortOptions();
     zen::api::ZenApi::Bind(default_data_ports);
+
+    // auto modes = zen::api::ZenApi::ListModes();
+    // std::cout << "Available modes are: " << std::endl;
+    // for (const auto &mode : modes)
+    // {
+    //     std::cout << "\t" << mode << std::endl;
+    // }
+
+    std::string FLAGS_imaging_mode = "evk_modes/ZenCropFieldOp";
+    std::string FLAGS_stream_addr = "172.16.0.99";
+    auto default_install_options = zen::api::ZenApi::InstallOptions();
+    zen::api::ZenApi::Start(FLAGS_imaging_mode, default_install_options, FLAGS_stream_addr);
 
     zen::api::ZenApi::SubscribeTrackerStates();
 
@@ -35,9 +48,12 @@ ZenPointCloudNode::~ZenPointCloudNode()
 
 void ZenPointCloudNode::Process()
 {
+    std::cout << "Processing..." << std::endl;
     while (auto points = zen::api::ZenApi::NextTrackerState(zen::api::ZenApi::Duration::zero()))
     {
         const auto &serial = points->meta().serial();
+        std::cout << "Got points for serial " << serial << std::endl;
+
         // auto cloud2 = ConvertToPointCloud2(*points);
         auto msg = sensor_msgs::msg::PointCloud2();
 

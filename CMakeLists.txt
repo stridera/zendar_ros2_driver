@@ -22,6 +22,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(ZenApi)
+find_package(gflags)
 
 
 include_directories(
@@ -36,6 +37,7 @@ add_executable(${PROJECT_NAME}
 ament_target_dependencies(${PROJECT_NAME}
   rclcpp
   sensor_msgs
+  gflags
 )
 
 target_link_libraries(${PROJECT_NAME}
