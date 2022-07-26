@@ -35,45 +35,49 @@ ZenPointCloudNode::ZenPointCloudNode(int argc, char *argv[]) : Node("zen_pointcl
     zen::api::ZenApi::Start(FLAGS_imaging_mode, default_install_options, FLAGS_stream_addr);
 
     zen::api::ZenApi::SubscribeTrackerStates();
+    zen::api::ZenApi::SubscribeLogMessages();
 
-    timer_ = this->create_wall_timer(1000ms, std::bind(&ZenPointCloudNode::Process, this));
+    pointcloud_timer_ = this->create_wall_timer(1000ms, std::bind(&ZenPointCloudNode::ProcessPoints, this));
+    logs_timer_ = this->create_wall_timer(100ms, std::bind(&ZenPointCloudNode::ProcessLogs, this));
 }
 
 ZenPointCloudNode::~ZenPointCloudNode()
 {
     zen::api::ZenApi::UnsubscribeTrackerStates();
+    zen::api::ZenApi::UnsubscribeLogMessages();
     zen::api::ZenApi::Release();
     zen::api::ZenApi::Disconnect();
 }
 
-void ZenPointCloudNode::Process()
+void ZenPointCloudNode::ProcessPoints()
 {
-    std::cout << "Processing..." << std::endl;
     while (auto points = zen::api::ZenApi::NextTrackerState(zen::api::ZenApi::Duration::zero()))
     {
         const auto &serial = points->meta().serial();
-        std::cout << "Got points for serial " << serial << std::endl;
+        auto detection = points->detection();
+        std::cout << "Got points for serial " << serial << " with " << detection.size() << " points" << std::endl;
 
-        // auto cloud2 = ConvertToPointCloud2(*points);
         auto msg = sensor_msgs::msg::PointCloud2();
 
         sensor_msgs::PointCloud2Modifier mod(msg);
-
-        mod.setPointCloud2Fields(0, "x", 1, sensor_msgs::msg::PointField::FLOAT32, 4);
-        mod.setPointCloud2Fields(1, "y", 1, sensor_msgs::msg::PointField::FLOAT32, 4);
-        mod.setPointCloud2Fields(2, "z", 1, sensor_msgs::msg::PointField::FLOAT32, 4);
-        mod.setPointCloud2Fields(3, "x_ecef", 1, sensor_msgs::msg::PointField::FLOAT64, 4);
-        mod.setPointCloud2Fields(4, "y_ecef", 1, sensor_msgs::msg::PointField::FLOAT64, 4);
-        mod.setPointCloud2Fields(5, "z_ecef", 1, sensor_msgs::msg::PointField::FLOAT64, 4);
-        mod.setPointCloud2Fields(6, "mag", 1, sensor_msgs::msg::PointField::FLOAT32, 4);
-        mod.setPointCloud2Fields(7, "az_var", 1, sensor_msgs::msg::PointField::FLOAT32, 4);
-        mod.setPointCloud2Fields(8, "el_var", 1, sensor_msgs::msg::PointField::FLOAT32, 4);
-        mod.setPointCloud2Fields(9, "r", 1, sensor_msgs::msg::PointField::FLOAT32, 4);
-        mod.setPointCloud2Fields(10, "rad_vel", 1, sensor_msgs::msg::PointField::FLOAT32, 4);
-        mod.setPointCloud2Fields(11, "az", 1, sensor_msgs::msg::PointField::FLOAT32, 4);
-        mod.setPointCloud2Fields(12, "el", 1, sensor_msgs::msg::PointField::FLOAT32, 4);
-        mod.setPointCloud2Fields(13, "doa_snr_db", 1, sensor_msgs::msg::PointField::FLOAT32, 4);
-        mod.setPointCloud2Fields(14, "rd_mean_snr_db", 1, sensor_msgs::msg::PointField::FLOAT32, 4);
+        mod.setPointCloud2Fields(15,
+                                 "x", 1, sensor_msgs::msg::PointField::FLOAT32,
+                                 "y", 1, sensor_msgs::msg::PointField::FLOAT32,
+                                 "z", 1, sensor_msgs::msg::PointField::FLOAT32,
+                                 "x_ecef", 1, sensor_msgs::msg::PointField::FLOAT64,
+                                 "y_ecef", 1, sensor_msgs::msg::PointField::FLOAT64,
+                                 "z_ecef", 1, sensor_msgs::msg::PointField::FLOAT64,
+                                 "mag", 1, sensor_msgs::msg::PointField::FLOAT32,
+                                 "az_var", 1, sensor_msgs::msg::PointField::FLOAT32,
+                                 "el_var", 1, sensor_msgs::msg::PointField::FLOAT32,
+                                 "r", 1, sensor_msgs::msg::PointField::FLOAT32,
+                                 "rad_vel", 1, sensor_msgs::msg::PointField::FLOAT32,
+                                 "az", 1, sensor_msgs::msg::PointField::FLOAT32,
+                                 "el", 1, sensor_msgs::msg::PointField::FLOAT32,
+                                 "doa_snr_db", 1, sensor_msgs::msg::PointField::FLOAT32,
+                                 "rd_mean_snr_db", 1, sensor_msgs::msg::PointField::FLOAT32);
+        mod.resize(detection.size());
+        msg.is_dense = true;
 
         sensor_msgs::PointCloud2Iterator<float> iter_x(msg, "x");
         sensor_msgs::PointCloud2Iterator<float> iter_y(msg, "y");
@@ -91,7 +95,7 @@ void ZenPointCloudNode::Process()
         sensor_msgs::PointCloud2Iterator<float> iter_doa_snr_db(msg, "doa_snr_db");
         sensor_msgs::PointCloud2Iterator<float> iter_rd_mean_snr_db(msg, "rd_mean_snr_db");
 
-        for (auto point_data : points->detection())
+        for (auto point_data : detection)
         {
             float az = point_data.azimuth();
             float el = point_data.elevation();
@@ -136,5 +140,19 @@ void ZenPointCloudNode::Process()
             this->_publishers.emplace(std::make_pair(serial, publisher));
         }
         this->_publishers.at(serial)->publish(msg);
+    }
+}
+
+void ZenPointCloudNode::ProcessLogs()
+{
+    // Dump any pending log messages
+    int i = 0;
+    while (auto next_log = zen::api::ZenApi::NextLogMessage())
+    {
+        // std::cout << "LOG: " << next_log->canonical_message() << "\n";
+        if (++i > 110)
+        {
+            break;
+        }
     }
 }
